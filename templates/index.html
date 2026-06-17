@@ -18,35 +18,120 @@
     </script>
     <style>
         * { box-sizing: border-box; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; overflow-x: hidden; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0; overflow-x: hidden;
+            transition: background-color 0.8s ease, color 0.8s ease;
+        }
+
+        /* ── Theme variables ── */
+        :root {
+            --bg-body: #0b0b14;
+            --bg-card: #1e1e2e;
+            --bg-display: #0b0b14;
+            --bg-sidebar: #1e1e2e;
+            --border-card: rgba(55,65,81,0.5);
+            --border-display: #2a2a3c;
+            --text-primary: #ffffff;
+            --text-secondary: #9ca3af;
+            --text-muted: #6b7280;
+            --btn-num: #2a2a3c;
+            --btn-num-hover: #3a3a4c;
+            --btn-func: #4f46e5;
+            --btn-sci: #7c3aed;
+            --btn-op: #d97706;
+            --btn-eq: #16a34a;
+            --btn-clear: #dc2626;
+            --btn-extra: #0d9488;
+            --btn-gray: #374151;
+            --btn-gray-hover: #4b5563;
+            --sidebar-border: #374151;
+            --toggle-bg: #4f46e5;
+            --dropdown-bg: rgba(31,41,55,0.6);
+            --dropdown-hover: rgba(55,65,81,0.6);
+            --scrollbar-track: transparent;
+            --scrollbar-thumb: #2a2a3c;
+        }
+        [data-theme="light"] {
+            --bg-body: #f0f2f5;
+            --bg-card: #ffffff;
+            --bg-display: #f8fafc;
+            --bg-sidebar: #ffffff;
+            --border-card: rgba(209,213,219,0.8);
+            --border-display: #e5e7eb;
+            --text-primary: #111827;
+            --text-secondary: #4b5563;
+            --text-muted: #9ca3af;
+            --btn-num: #f3f4f6;
+            --btn-num-hover: #e5e7eb;
+            --btn-func: #4f46e5;
+            --btn-sci: #7c3aed;
+            --btn-op: #d97706;
+            --btn-eq: #16a34a;
+            --btn-clear: #dc2626;
+            --btn-extra: #0d9488;
+            --btn-gray: #e5e7eb;
+            --btn-gray-hover: #d1d5db;
+            --sidebar-border: #e5e7eb;
+            --toggle-bg: #6366f1;
+            --dropdown-bg: rgba(243,244,246,0.9);
+            --dropdown-hover: rgba(229,231,235,0.9);
+            --scrollbar-track: transparent;
+            --scrollbar-thumb: #d1d5db;
+        }
+
+        body { background-color: var(--bg-body); color: var(--text-primary); }
+
+        /* ── Transition overlay for theme animation ── */
+        #themeOverlay {
+            position: fixed; inset: 0; z-index: 9999; pointer-events: none;
+            opacity: 0; transition: opacity 0.6s ease;
+        }
+        #themeOverlay.active { opacity: 1; }
 
         /* ── Sidebar ── */
         #sidebar {
             position: fixed; top: 0; left: 0; height: 100vh; width: 280px;
-            background: #1e1e2e; border-right: 1px solid #374151;
+            background: var(--bg-sidebar); border-right: 1px solid var(--sidebar-border);
             overflow-y: auto; z-index: 40;
-            transition: transform 0.3s ease, opacity 0.3s ease;
+            transition: transform 0.3s ease, opacity 0.3s ease, background 0.8s ease, border-color 0.8s ease;
         }
         #sidebar.collapsed { transform: translateX(-100%); opacity: 0; pointer-events: none; }
+        #sidebar::-webkit-scrollbar { width: 5px; }
+        #sidebar::-webkit-scrollbar-track { background: var(--scrollbar-track); }
+        #sidebar::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 10px; }
 
-        /* ── Main area shifts with sidebar ── */
+        /* ── Main area ── */
         #mainContent {
             margin-left: 280px;
             transition: margin-left 0.3s ease;
         }
         #mainContent.full { margin-left: 0; }
 
-        /* ── Toggle button sits just inside main area ── */
+        /* ── Toggle button ── */
         #sidebarToggle {
             position: fixed; top: 16px; left: 16px; z-index: 50;
             width: 40px; height: 40px;
             display: flex; align-items: center; justify-content: center;
-            background: #4f46e5; border-radius: 10px; border: none;
-            color: white; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.4);
-            transition: background 0.2s, left 0.3s;
+            background: var(--toggle-bg); border-radius: 10px; border: none;
+            color: white; cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            transition: background 0.2s, left 0.3s, background-color 0.8s;
         }
-        #sidebarToggle:hover { background: #4338ca; }
+        #sidebarToggle:hover { filter: brightness(1.15); }
         #sidebarToggle.shifted { left: 300px; }
+
+        /* ── Theme toggle ── */
+        #themeToggle {
+            position: fixed; top: 16px; right: 16px; z-index: 50;
+            width: 40px; height: 40px;
+            display: flex; align-items: center; justify-content: center;
+            background: var(--toggle-bg); border-radius: 10px; border: none;
+            color: white; cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            transition: background-color 0.8s, transform 0.3s;
+        }
+        #themeToggle:hover { filter: brightness(1.15); transform: rotate(30deg); }
 
         /* ── Dropdowns ── */
         .dropdown-content { max-height: 0; overflow: hidden; transition: max-height 0.3s ease; }
@@ -57,7 +142,7 @@
         /* ── Calc buttons ── */
         .calc-btn {
             border: none; cursor: pointer; font-weight: 700; font-size: 15px;
-            border-radius: 10px; padding: 12px 0; transition: all 0.1s;
+            border-radius: 10px; padding: 12px 0; transition: all 0.1s, background-color 0.8s;
             display: flex; align-items: center; justify-content: center;
         }
         .calc-btn:active { transform: scale(0.93); }
@@ -65,35 +150,45 @@
 
         /* ── Display ── */
         #display {
-            background: #0b0b14; border-radius: 14px; padding: 16px 20px;
+            background: var(--bg-display); border-radius: 14px; padding: 16px 20px;
             min-height: 90px; display: flex; flex-direction: column;
-            justify-content: flex-end; border: 1px solid #2a2a3c;
+            justify-content: flex-end; border: 1px solid var(--border-display);
+            transition: background 0.8s, border-color 0.8s;
         }
-        #exprLine { font-size: 14px; color: #9ca3af; text-align: right;
-                     min-height: 20px; overflow-x: auto; white-space: nowrap;
-                     scrollbar-width: thin; }
-        #resultLine { font-size: 36px; font-weight: 700; color: #fff;
-                      text-align: right; min-height: 44px; line-height: 1.2;
-                      overflow-x: auto; white-space: nowrap; }
+        #exprLine {
+            font-size: 14px; color: var(--text-secondary); text-align: right;
+            min-height: 20px; overflow: hidden; white-space: nowrap;
+            text-overflow: ellipsis;
+        }
+        #resultLine {
+            font-size: 36px; font-weight: 700; color: var(--text-primary);
+            text-align: right; min-height: 44px; line-height: 1.2;
+            overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
+            transition: color 0.8s;
+        }
         #resultLine.error { color: #f87171; font-size: 18px; }
     </style>
 </head>
-<body class="bg-dark-950 text-white min-h-screen">
+<body class="min-h-screen" data-theme="dark">
+
+    <!-- Theme transition overlay -->
+    <div id="themeOverlay"></div>
 
     <!-- ═══════════════ SIDEBAR ═══════════════ -->
     <aside id="sidebar">
         <div class="p-5">
-            <h2 class="text-lg font-bold text-indigo-400 mb-5 flex items-center gap-2">
+            <h2 class="text-lg font-bold mb-5 flex items-center gap-2" style="color: var(--text-primary);">
                 <span>Equations</span>
-                <span class="text-xs font-normal text-gray-500">(click to open in new tab)</span>
+                <span class="text-xs font-normal" style="color: var(--text-muted);">(click to open in new tab)</span>
             </h2>
 
             {% for cat, eqs in categories.items() %}
             <div class="mb-3">
                 <button onclick="toggleDropdown(this, 'cat-{{ loop.index }}')"
-                    class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg bg-gray-800/60 hover:bg-gray-700/80 text-sm font-semibold text-gray-200 transition">
+                    class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-semibold transition"
+                    style="background: var(--dropdown-bg); color: var(--text-primary);">
                     <span>{{ cat }}</span>
-                    <svg class="dropdown-arrow w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="dropdown-arrow w-4 h-4" style="color: var(--text-muted);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                     </svg>
                 </button>
@@ -101,9 +196,11 @@
                 <div id="cat-{{ loop.index }}" class="dropdown-content ml-2 mt-1 space-y-0.5">
                     {% for eq in eqs %}
                     <a href="/equation/{{ eq.slug }}" target="_blank"
-                       class="block px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-700/60 hover:text-white
-                              border-l-2 border-transparent hover:border-indigo-400 transition-all">
-                        <span class="font-mono text-xs text-indigo-300/80 block mb-0.5">{{ eq.formula }}</span>
+                       class="block px-3 py-2 rounded-lg text-sm transition-all"
+                       style="color: var(--text-secondary);"
+                       onmouseover="this.style.background='var(--dropdown-hover)'; this.style.color='var(--text-primary)'"
+                       onmouseout="this.style.background=''; this.style.color='var(--text-secondary)'">
+                        <span class="font-mono text-xs block mb-0.5" style="color: #818cf8;">{{ eq.formula }}</span>
                         <span>{{ eq.name }}</span>
                     </a>
                     {% endfor %}
@@ -113,10 +210,23 @@
         </div>
     </aside>
 
-    <!-- Toggle button -->
+    <!-- Sidebar toggle -->
     <button id="sidebarToggle" class="shifted" onclick="toggleSidebar()">
         <svg id="toggleIcon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+    </button>
+
+    <!-- Theme toggle -->
+    <button id="themeToggle" onclick="toggleTheme()" title="Switch theme">
+        <svg id="themeIcon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <!-- Sun icon (shown in dark mode) -->
+            <path id="sunIcon" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
+            <!-- Moon icon (hidden initially) -->
+            <path id="moonIcon" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"
+                  style="display:none;"/>
         </svg>
     </button>
 
@@ -124,7 +234,8 @@
     <div id="mainContent" class="min-h-screen flex flex-col items-center justify-center p-6 pt-20">
 
         <!-- Calculator card -->
-        <div class="bg-dark-800 rounded-2xl shadow-2xl border border-gray-700/50 w-full max-w-[420px] p-6">
+        <div class="rounded-2xl shadow-2xl w-full max-w-[420px] p-6"
+             style="background: var(--bg-card); border: 1px solid var(--border-card); transition: background 0.8s, border-color 0.8s;">
 
             <!-- Display -->
             <div id="display" class="mb-5">
@@ -136,64 +247,64 @@
             <div class="grid grid-cols-5 gap-2">
 
                 <!-- Row 1 — Trig + log -->
-                <button class="calc-btn bg-indigo-600 text-xs" onclick="insertFn('sin')">sin</button>
-                <button class="calc-btn bg-indigo-600 text-xs" onclick="insertFn('cos')">cos</button>
-                <button class="calc-btn bg-indigo-600 text-xs" onclick="insertFn('tan')">tan</button>
-                <button class="calc-btn bg-indigo-600 text-xs" onclick="insertFn('ln')">ln</button>
-                <button class="calc-btn bg-indigo-600 text-xs" onclick="insertFn('log')">log</button>
+                <button class="calc-btn text-xs" style="background: var(--btn-func); color: white;" onclick="insertFn('sin')">sin</button>
+                <button class="calc-btn text-xs" style="background: var(--btn-func); color: white;" onclick="insertFn('cos')">cos</button>
+                <button class="calc-btn text-xs" style="background: var(--btn-func); color: white;" onclick="insertFn('tan')">tan</button>
+                <button class="calc-btn text-xs" style="background: var(--btn-func); color: white;" onclick="insertFn('ln')">ln</button>
+                <button class="calc-btn text-xs" style="background: var(--btn-func); color: white;" onclick="insertFn('log')">log</button>
 
                 <!-- Row 2 — Powers, roots, pi -->
-                <button class="calc-btn bg-purple-600 text-xs" onclick="insertFn('sqrt')">√</button>
-                <button class="calc-btn bg-purple-600 text-xs" onclick="insertFn('cbrt')">∛</button>
-                <button class="calc-btn bg-purple-600 text-xs" onclick="insertText('^2')">x²</button>
-                <button class="calc-btn bg-purple-600 text-xs" onclick="insertText('^3')">x³</button>
-                <button class="calc-btn bg-purple-600 text-xs" onclick="insertConst('PI')">π</button>
+                <button class="calc-btn text-xs" style="background: var(--btn-sci); color: white;" onclick="insertFn('sqrt')">√</button>
+                <button class="calc-btn text-xs" style="background: var(--btn-sci); color: white;" onclick="insertFn('cbrt')">∛</button>
+                <button class="calc-btn text-xs" style="background: var(--btn-sci); color: white;" onclick="insertText('^2')">x²</button>
+                <button class="calc-btn text-xs" style="background: var(--btn-sci); color: white;" onclick="insertText('^3')">x³</button>
+                <button class="calc-btn text-xs" style="background: var(--btn-sci); color: white;" onclick="insertConst('PI')">π</button>
 
                 <!-- Row 3 — Parens, %, ^, clear -->
-                <button class="calc-btn bg-gray-700 text-base" onclick="insertText('(')">(</button>
-                <button class="calc-btn bg-gray-700 text-base" onclick="insertText(')')">)</button>
-                <button class="calc-btn bg-gray-700 text-base" onclick="insertText('%')">%</button>
-                <button class="calc-btn bg-gray-700 text-base" onclick="insertText('^')">^</button>
-                <button class="calc-btn bg-red-600 text-sm" onclick="clearAll()">AC</button>
+                <button class="calc-btn text-base" style="background: var(--btn-gray); color: var(--text-primary);" onclick="insertText('(')">(</button>
+                <button class="calc-btn text-base" style="background: var(--btn-gray); color: var(--text-primary);" onclick="insertText(')')">)</button>
+                <button class="calc-btn text-base" style="background: var(--btn-gray); color: var(--text-primary);" onclick="insertText('%')">%</button>
+                <button class="calc-btn text-base" style="background: var(--btn-gray); color: var(--text-primary);" onclick="insertText('^')">^</button>
+                <button class="calc-btn text-sm" style="background: var(--btn-clear); color: white;" onclick="clearAll()">AC</button>
 
                 <!-- Row 4 — 7 8 9 / backspace -->
-                <button class="calc-btn bg-dark-700 text-lg hover:bg-gray-600" onclick="insertText('7')">7</button>
-                <button class="calc-btn bg-dark-700 text-lg hover:bg-gray-600" onclick="insertText('8')">8</button>
-                <button class="calc-btn bg-dark-700 text-lg hover:bg-gray-600" onclick="insertText('9')">9</button>
-                <button class="calc-btn bg-amber-600 text-base" onclick="insertOp('/')">÷</button>
-                <button class="calc-btn bg-gray-700 text-base" onclick="backspace()">⌫</button>
+                <button class="calc-btn text-lg" style="background: var(--btn-num); color: var(--text-primary);" onclick="insertText('7')">7</button>
+                <button class="calc-btn text-lg" style="background: var(--btn-num); color: var(--text-primary);" onclick="insertText('8')">8</button>
+                <button class="calc-btn text-lg" style="background: var(--btn-num); color: var(--text-primary);" onclick="insertText('9')">9</button>
+                <button class="calc-btn text-base" style="background: var(--btn-op); color: white;" onclick="insertOp('/')">÷</button>
+                <button class="calc-btn text-base" style="background: var(--btn-gray); color: var(--text-primary);" onclick="backspace()">⌫</button>
 
                 <!-- Row 5 — 4 5 6 * |x| -->
-                <button class="calc-btn bg-dark-700 text-lg hover:bg-gray-600" onclick="insertText('4')">4</button>
-                <button class="calc-btn bg-dark-700 text-lg hover:bg-gray-600" onclick="insertText('5')">5</button>
-                <button class="calc-btn bg-dark-700 text-lg hover:bg-gray-600" onclick="insertText('6')">6</button>
-                <button class="calc-btn bg-amber-600 text-base" onclick="insertOp('*')">×</button>
-                <button class="calc-btn bg-gray-700 text-xs" onclick="insertFn('abs')">|x|</button>
+                <button class="calc-btn text-lg" style="background: var(--btn-num); color: var(--text-primary);" onclick="insertText('4')">4</button>
+                <button class="calc-btn text-lg" style="background: var(--btn-num); color: var(--text-primary);" onclick="insertText('5')">5</button>
+                <button class="calc-btn text-lg" style="background: var(--btn-num); color: var(--text-primary);" onclick="insertText('6')">6</button>
+                <button class="calc-btn text-base" style="background: var(--btn-op); color: white;" onclick="insertOp('*')">×</button>
+                <button class="calc-btn text-xs" style="background: var(--btn-gray); color: var(--text-primary);" onclick="insertFn('abs')">|x|</button>
 
                 <!-- Row 6 — 1 2 3 - n! -->
-                <button class="calc-btn bg-dark-700 text-lg hover:bg-gray-600" onclick="insertText('1')">1</button>
-                <button class="calc-btn bg-dark-700 text-lg hover:bg-gray-600" onclick="insertText('2')">2</button>
-                <button class="calc-btn bg-dark-700 text-lg hover:bg-gray-600" onclick="insertText('3')">3</button>
-                <button class="calc-btn bg-amber-600 text-base" onclick="insertOp('-')">−</button>
-                <button class="calc-btn bg-gray-700 text-xs" onclick="insertFn('fact')">n!</button>
+                <button class="calc-btn text-lg" style="background: var(--btn-num); color: var(--text-primary);" onclick="insertText('1')">1</button>
+                <button class="calc-btn text-lg" style="background: var(--btn-num); color: var(--text-primary);" onclick="insertText('2')">2</button>
+                <button class="calc-btn text-lg" style="background: var(--btn-num); color: var(--text-primary);" onclick="insertText('3')">3</button>
+                <button class="calc-btn text-base" style="background: var(--btn-op); color: white;" onclick="insertOp('-')">−</button>
+                <button class="calc-btn text-xs" style="background: var(--btn-gray); color: var(--text-primary);" onclick="insertFn('fact')">n!</button>
 
                 <!-- Row 7 — 0 . + = -->
-                <button class="calc-btn bg-dark-700 text-lg hover:bg-gray-600 col-span-2" onclick="insertText('0')">0</button>
-                <button class="calc-btn bg-dark-700 text-lg hover:bg-gray-600" onclick="insertText('.')">.</button>
-                <button class="calc-btn bg-amber-600 text-base" onclick="insertOp('+')">+</button>
-                <button class="calc-btn bg-green-600 text-base" onclick="evaluate()">=</button>
+                <button class="calc-btn text-lg col-span-2" style="background: var(--btn-num); color: var(--text-primary);" onclick="insertText('0')">0</button>
+                <button class="calc-btn text-lg" style="background: var(--btn-num); color: var(--text-primary);" onclick="insertText('.')">.</button>
+                <button class="calc-btn text-base" style="background: var(--btn-op); color: white;" onclick="insertOp('+')">+</button>
+                <button class="calc-btn text-base" style="background: var(--btn-eq); color: white;" onclick="doCalc()">=</button>
             </div>
 
             <!-- Extra row — special -->
             <div class="grid grid-cols-4 gap-2 mt-2.5">
-                <button class="calc-btn bg-teal-700 text-xs py-2" onclick="insertFn('exp')">eˣ</button>
-                <button class="calc-btn bg-teal-700 text-xs py-2" onclick="insertFn('pow10')">10ˣ</button>
-                <button class="calc-btn bg-teal-700 text-xs py-2" onclick="insertConst('E')">e</button>
-                <button class="calc-btn bg-teal-700 text-xs py-2" onclick="insertFn('rand')">rand</button>
+                <button class="calc-btn text-xs py-2" style="background: var(--btn-extra); color: white;" onclick="insertFn('exp')">eˣ</button>
+                <button class="calc-btn text-xs py-2" style="background: var(--btn-extra); color: white;" onclick="insertFn('pow10')">10ˣ</button>
+                <button class="calc-btn text-xs py-2" style="background: var(--btn-extra); color: white;" onclick="insertConst('E')">e</button>
+                <button class="calc-btn text-xs py-2" style="background: var(--btn-extra); color: white;" onclick="insertFn('rand')">rand</button>
             </div>
         </div>
 
-        <p class="text-gray-600 text-xs mt-5">Keyboard supported — type expressions, press Enter to evaluate</p>
+        <p class="text-xs mt-5" style="color: var(--text-muted);">Keyboard supported — type expressions, press Enter to evaluate</p>
     </div>
 
     <!-- ═══════════════════════════════════════════ -->
@@ -202,16 +313,18 @@
     <script>
     (() => {
         // ── State ──
-        let raw = '';          // actual expression sent to eval (JS syntax)
-        let displayParts = []; // user-friendly display tokens
+        let raw = '';
+        let displayParts = [];
+        let currentTheme = 'dark';
 
         // ── DOM refs ──
-        const exprEl   = document.getElementById('exprLine');
-        const resultEl = document.getElementById('resultLine');
-        const sidebar  = document.getElementById('sidebar');
-        const main     = document.getElementById('mainContent');
-        const toggle   = document.getElementById('sidebarToggle');
-        const icon     = document.getElementById('toggleIcon');
+        const exprEl    = document.getElementById('exprLine');
+        const resultEl  = document.getElementById('resultLine');
+        const sidebar   = document.getElementById('sidebar');
+        const main      = document.getElementById('mainContent');
+        const toggle    = document.getElementById('sidebarToggle');
+        const icon      = document.getElementById('toggleIcon');
+        const overlay   = document.getElementById('themeOverlay');
         let sidebarOpen = true;
 
         // ════════════════════════════════════
@@ -222,10 +335,37 @@
             sidebar.classList.toggle('collapsed', !sidebarOpen);
             main.classList.toggle('full', !sidebarOpen);
             toggle.classList.toggle('shifted', sidebarOpen);
-            // swap icon: X ↔ hamburger
             icon.innerHTML = sidebarOpen
                 ? '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>'
                 : '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>';
+        };
+
+        // ════════════════════════════════════
+        // THEME SWITCHER with animated transition
+        // ════════════════════════════════════
+        window.toggleTheme = function() {
+            const html = document.body;
+            const sunIcon  = document.getElementById('sunIcon');
+            const moonIcon = document.getElementById('moonIcon');
+
+            // Flash the overlay for transition effect
+            overlay.style.background = currentTheme === 'dark'
+                ? 'radial-gradient(circle at 50% 0%, rgba(255,200,100,0.4), transparent 70%)'
+                : 'radial-gradient(circle at 50% 0%, rgba(100,120,255,0.3), transparent 70%)';
+            overlay.classList.add('active');
+            setTimeout(() => overlay.classList.remove('active'), 700);
+
+            if (currentTheme === 'dark') {
+                currentTheme = 'light';
+                html.setAttribute('data-theme', 'light');
+                sunIcon.style.display = 'none';
+                moonIcon.style.display = 'block';
+            } else {
+                currentTheme = 'dark';
+                html.setAttribute('data-theme', 'dark');
+                sunIcon.style.display = 'block';
+                moonIcon.style.display = 'none';
+            }
         };
 
         // ════════════════════════════════════
@@ -241,15 +381,12 @@
         // ════════════════════════════════════
         // EXPRESSION BUILDING
         // ════════════════════════════════════
-
-        // Insert raw text (digits, dot, parentheses)
         window.insertText = function(t) {
             raw += t;
             displayParts.push(t);
             refreshDisplay();
         };
 
-        // Insert operator (+ - * /) — shows friendly symbol in display
         window.insertOp = function(op) {
             raw += op;
             const symbols = { '/': '÷', '*': '×', '+': '+', '-': '−' };
@@ -257,7 +394,6 @@
             refreshDisplay();
         };
 
-        // Insert function: sin( cos( sqrt( etc.
         window.insertFn = function(fn) {
             const map = {
                 sin:   { js: 'Math.sin(',  dsp: 'sin(' },
@@ -279,7 +415,6 @@
             refreshDisplay();
         };
 
-        // Insert constant
         window.insertConst = function(c) {
             if (c === 'PI') { raw += 'Math.PI'; displayParts.push('π'); }
             if (c === 'E')  { raw += 'Math.E';  displayParts.push('e'); }
@@ -299,7 +434,6 @@
 
         window.backspace = function() {
             if (!raw) return;
-            // try to remove last logical token
             const fnPatterns = [
                 'Math.sin(', 'Math.cos(', 'Math.tan(', 'Math.log(', 'Math.log10(',
                 'Math.sqrt(', 'Math.cbrt(', 'Math.abs(', 'Math.exp(', 'Math.pow(10,',
@@ -309,16 +443,13 @@
             for (const pat of fnPatterns) {
                 if (raw.endsWith(pat)) {
                     raw = raw.slice(0, -pat.length);
-                    // also remove last display token(s) that correspond
                     displayParts.pop();
                     removed = true;
                     break;
                 }
             }
             if (!removed) {
-                // remove last char from raw
                 raw = raw.slice(0, -1);
-                // remove last display part (may need to pop multiple for ' ± ')
                 if (displayParts.length) displayParts.pop();
             }
             refreshDisplay();
@@ -329,14 +460,11 @@
         // ════════════════════════════════════
         function refreshDisplay() {
             exprEl.textContent = displayParts.join('');
-            exprEl.scrollLeft = exprEl.scrollWidth;
         }
 
         // ════════════════════════════════════
-        // EVALUATION (all client-side, no server)
+        // EVALUATION (renamed to avoid window.evaluate conflict)
         // ════════════════════════════════════
-
-        // Factorial helper for JS eval
         function fact(n) {
             n = Math.round(n);
             if (n < 0) throw new Error('Factorial of negative number');
@@ -346,17 +474,13 @@
             return r;
         }
 
-        window.evaluate = function() {
+        window.doCalc = function() {
             if (!raw.trim()) return;
             try {
-                // Replace ^ with ** for exponentiation
                 let expr = raw.replace(/\^/g, '**');
-
-                // Validate: only allow safe characters
                 if (/[a-zA-Z]/.test(expr.replace(/Math\.\w+/g, '').replace(/fact/g, ''))) {
                     throw new Error('Invalid expression');
                 }
-
                 const result = Function('fact', '"use strict"; return (' + expr + ')')(fact);
 
                 if (result === undefined || result === null) {
@@ -364,26 +488,21 @@
                     resultEl.classList.add('error');
                     return;
                 }
-
                 if (typeof result === 'number' && !Number.isFinite(result)) {
                     resultEl.textContent = isNaN(result) ? 'Error' : (result > 0 ? '∞' : '-∞');
                     resultEl.classList.add('error');
                     return;
                 }
 
-                // Format result
                 const formatted = typeof result === 'number'
                     ? (Number.isInteger(result) ? result.toString() : parseFloat(result.toFixed(10)).toString())
                     : result.toString();
 
                 resultEl.textContent = formatted;
                 resultEl.classList.remove('error');
-
-                // Set raw to result so you can chain operations
                 raw = formatted;
                 displayParts = [formatted];
                 refreshDisplay();
-
             } catch (e) {
                 resultEl.textContent = e.message || 'Error';
                 resultEl.classList.add('error');
@@ -394,11 +513,9 @@
         // KEYBOARD
         // ════════════════════════════════════
         document.addEventListener('keydown', (e) => {
-            // Don't capture if user is typing in an input
             if (e.target.tagName === 'INPUT') return;
-
             const key = e.key;
-            if (key === 'Enter')  { e.preventDefault(); evaluate(); }
+            if (key === 'Enter')  { e.preventDefault(); window.doCalc(); }
             else if (key === 'Escape') { clearAll(); }
             else if (key === 'Backspace') { e.preventDefault(); backspace(); }
             else if ('0123456789'.includes(key)) { insertText(key); }
@@ -413,7 +530,7 @@
         });
 
         // ════════════════════════════════════
-        // INIT — open all dropdowns
+        // INIT
         // ════════════════════════════════════
         document.querySelectorAll('.dropdown-content').forEach(el => el.classList.add('open'));
         document.querySelectorAll('.dropdown-arrow').forEach(el => el.classList.add('open'));
