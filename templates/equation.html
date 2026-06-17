@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ eq.name }} — Scientific Calculator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        dark: { 800: '#1e1e2e', 900: '#11111b' },
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        pre code { font-family: 'Fira Code', 'Consolas', monospace; }
+    </style>
+</head>
+<body class="bg-dark-900 text-white min-h-screen">
+
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- TOP BAR                                     -->
+    <!-- ═══════════════════════════════════════════ -->
+    <nav class="bg-dark-800 border-b border-gray-700 px-6 py-3 flex items-center justify-between">
+        <div class="flex items-center gap-4">
+            <a href="/" class="text-indigo-400 hover:text-indigo-300 text-sm font-semibold">← Back to Calculator</a>
+            <span class="text-gray-600">|</span>
+            <span class="text-gray-400 text-sm">{{ eq.category }}</span>
+        </div>
+        <h1 class="text-lg font-bold text-indigo-400">{{ eq.name }}</h1>
+    </nav>
+
+    <div class="max-w-4xl mx-auto px-6 py-10 space-y-8">
+
+        <!-- ═══════════════════════════════════════ -->
+        <!-- EQUATION INFO                           -->
+        <!-- ═══════════════════════════════════════ -->
+        <section class="bg-dark-800 rounded-2xl border border-gray-700 p-8">
+            <p class="text-gray-400 text-sm mb-2">{{ eq.category }}</p>
+            <h2 class="text-2xl font-bold text-white mb-4">{{ eq.name }}</h2>
+
+            <div class="bg-gray-900 rounded-xl p-6 mb-6 text-center">
+                <p class="text-4xl font-bold text-indigo-300 font-mono">{{ eq.formula }}</p>
+            </div>
+
+            <p class="text-gray-300 leading-relaxed">{{ eq.description }}</p>
+        </section>
+
+        <!-- ═══════════════════════════════════════ -->
+        <!-- TRY IT — interactive calculator          -->
+        <!-- ═══════════════════════════════════════ -->
+        <section class="bg-dark-800 rounded-2xl border border-gray-700 p-8">
+            <h3 class="text-xl font-bold text-white mb-6">Try it out</h3>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+                {% for param in eq.params %}
+                <div>
+                    <label class="block text-sm font-semibold text-gray-300 mb-1">{{ param.label }}</label>
+                    <input type="text" id="param-{{ param.name }}" data-name="{{ param.name }}"
+                           class="w-full bg-gray-900 border border-gray-600 rounded-lg px-4 py-2 text-white focus:border-indigo-500 focus:outline-none"
+                           placeholder="Enter {{ param.label }}">
+                </div>
+                {% endfor %}
+            </div>
+
+            <button onclick="runEquation()"
+                class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 px-6 rounded-lg transition">
+                Calculate
+            </button>
+
+            <div id="eq-result" class="mt-6 bg-gray-900 rounded-xl p-6 hidden">
+                <h4 class="text-sm font-semibold text-gray-400 mb-3">Result</h4>
+                <pre id="eq-result-content" class="text-green-400 font-mono text-sm whitespace-pre-wrap"></pre>
+            </div>
+        </section>
+
+        <!-- ═══════════════════════════════════════ -->
+        <!-- HOW IT WORKS — explanation               -->
+        <!-- ═══════════════════════════════════════ -->
+        <section class="bg-dark-800 rounded-2xl border border-gray-700 p-8">
+            <h3 class="text-xl font-bold text-white mb-4">How it works</h3>
+            <div class="text-gray-300 space-y-3 leading-relaxed">
+                {% if slug == "pythagorean-theorem" %}
+                <p>In any <strong>right-angled triangle</strong>, the square of the hypotenuse (the side opposite the right angle) equals the sum of the squares of the other two sides.</p>
+                <p class="font-mono bg-gray-900 rounded-lg p-4">c² = a² + b²  →  c = √(a² + b²)</p>
+                <p>This is the foundation of Euclidean geometry and is used in construction, navigation, and physics.</p>
+
+                {% elif slug == "quadratic-formula" %}
+                <p>A quadratic equation <strong>ax² + bx + c = 0</strong> has solutions given by:</p>
+                <p class="font-mono bg-gray-900 rounded-lg p-4">x = (-b ± √(b²-4ac)) / 2a</p>
+                <p>The <strong>discriminant</strong> (b²-4ac) determines the nature of the roots: positive → two real roots, zero → one repeated root, negative → complex roots.</p>
+
+                {% elif slug == "area-of-circle" %}
+                <p>The area of a circle is proportional to the square of its radius.</p>
+                <p class="font-mono bg-gray-900 rounded-lg p-4">A = π × r²</p>
+                <p>where π ≈ 3.14159 is the mathematical constant representing the ratio of a circle's circumference to its diameter.</p>
+
+                {% elif slug == "volume-of-sphere" %}
+                <p>The volume of a sphere depends on the cube of its radius:</p>
+                <p class="font-mono bg-gray-900 rounded-lg p-4">V = (4/3) × π × r³</p>
+                <p>This formula was discovered by Archimedes around 250 BC.</p>
+
+                {% elif slug == "area-of-triangle" %}
+                <p>The area of a triangle is half the product of its base and perpendicular height:</p>
+                <p class="font-mono bg-gray-900 rounded-lg p-4">A = ½ × base × height</p>
+                <p>This works regardless of the triangle's shape — the height must be measured perpendicular to the base.</p>
+
+                {% elif slug == "linear-equation" %}
+                <p>A straight line is described by the <strong>slope-intercept</strong> form:</p>
+                <p class="font-mono bg-gray-900 rounded-lg p-4">y = mx + c</p>
+                <p><strong>m</strong> is the slope (rate of change) and <strong>c</strong> is the y-intercept (where the line crosses the y-axis).</p>
+
+                {% elif slug == "factorial" %}
+                <p>The factorial of a non-negative integer n is the product of all positive integers up to n:</p>
+                <p class="font-mono bg-gray-900 rounded-lg p-4">n! = n × (n-1) × (n-2) × ... × 2 × 1</p>
+                <p>By definition, 0! = 1. Factorials grow extremely fast (10! = 3,628,800).</p>
+
+                {% elif slug == "combination" %}
+                <p>A combination counts how many ways to choose <strong>r</strong> items from <strong>n</strong> where <strong>order doesn't matter</strong>:</p>
+                <p class="font-mono bg-gray-900 rounded-lg p-4">C(n, r) = n! / (r! × (n-r)!)</p>
+                <p>Example: choosing 2 cards from a deck of 52 → C(52,2) = 1326.</p>
+
+                {% elif slug == "permutation" %}
+                <p>A permutation counts how many ways to arrange <strong>r</strong> items from <strong>n</strong> where <strong>order matters</strong>:</p>
+                <p class="font-mono bg-gray-900 rounded-lg p-4">P(n, r) = n! / (n-r)!</p>
+                <p>P(n, r) is always ≥ C(n, r) because every combination can be rearranged in r! ways.</p>
+
+                {% elif slug == "sine-rule" %}
+                <p>The Sine Rule relates sides and angles in <strong>any triangle</strong>:</p>
+                <p class="font-mono bg-gray-900 rounded-lg p-4">a/sin(A) = b/sin(B) = c/sin(C)</p>
+                <p>It's especially useful when you know one side and two angles, or two sides and a non-included angle.</p>
+
+                {% elif slug == "cosine-rule" %}
+                <p>The Cosine Rule generalises the Pythagorean theorem for <strong>any triangle</strong>:</p>
+                <p class="font-mono bg-gray-900 rounded-lg p-4">c² = a² + b² - 2ab × cos(C)</p>
+                <p>When C = 90°, cos(C) = 0, and the formula reduces to c² = a² + b².</p>
+
+                {% elif slug == "sine-value" %}
+                <p>The sine function relates an angle in a right triangle to the ratio of the <strong>opposite side</strong> to the <strong>hypotenuse</strong>:</p>
+                <p class="font-mono bg-gray-900 rounded-lg p-4">sin(θ) = opposite / hypotenuse</p>
+                <p>It oscillates between -1 and 1 and is fundamental in wave mechanics and signal processing.</p>
+
+                {% elif slug == "cosine-value" %}
+                <p>The cosine function relates an angle to the ratio of the <strong>adjacent side</strong> to the <strong>hypotenuse</strong>:</p>
+                <p class="font-mono bg-gray-900 rounded-lg p-4">cos(θ) = adjacent / hypotenuse</p>
+                <p>It is the sine function shifted by 90°: cos(θ) = sin(θ + 90°).</p>
+
+                {% elif slug == "tangent-value" %}
+                <p>The tangent function is the ratio of sine to cosine:</p>
+                <p class="font-mono bg-gray-900 rounded-lg p-4">tan(θ) = sin(θ) / cos(θ) = opposite / adjacent</p>
+                <p>tan(θ) is undefined when cos(θ) = 0 (i.e., at 90° and 270°).</p>
+
+                {% elif slug == "newtons-second-law" %}
+                <p>Newton's Second Law of Motion states that force is proportional to mass and acceleration:</p>
+                <p class="font-mono bg-gray-900 rounded-lg p-4">F = m × a</p>
+                <p>where F is in Newtons, m in kilograms, and a in m/s². This is the cornerstone of classical mechanics.</p>
+
+                {% elif slug == "kinetic-energy" %}
+                <p>Kinetic energy is the energy an object possesses due to its motion:</p>
+                <p class="font-mono bg-gray-900 rounded-lg p-4">KE = ½ × m × v²</p>
+                <p>If you double the velocity, kinetic energy quadruples (because of the v² term).</p>
+
+                {% elif slug == "potential-energy" %}
+                <p>Gravitational potential energy is the energy stored by an object at a height above a reference point:</p>
+                <p class="font-mono bg-gray-900 rounded-lg p-4">PE = m × g × h</p>
+                <p>On Earth, g ≈ 9.81 m/s². PE is converted to kinetic energy as the object falls.</p>
+
+                {% elif slug == "ohms-law" %}
+                <p>Ohm's Law relates voltage, current, and resistance in an electrical circuit:</p>
+                <p class="font-mono bg-gray-900 rounded-lg p-4">V = I × R</p>
+                <p>Provide any two values to solve for the third. V in volts, I in amps, R in ohms.</p>
+
+                {% elif slug == "mean" %}
+                <p>The arithmetic mean (average) sums all values and divides by the count:</p>
+                <p class="font-mono bg-gray-900 rounded-lg p-4">x̄ = (x₁ + x₂ + ... + xₙ) / n</p>
+                <p>Enter values separated by commas.</p>
+
+                {% elif slug == "standard-deviation" %}
+                <p>The population standard deviation measures how spread out values are from the mean:</p>
+                <p class="font-mono bg-gray-900 rounded-lg p-4">σ = √( Σ(xᵢ - x̄)² / n )</p>
+                <p>A low standard deviation means data points are close to the mean; a high value indicates spread.</p>
+
+                {% elif slug == "median" %}
+                <p>The median is the middle value of a sorted dataset. If the dataset has an even number of values, the median is the average of the two middle values.</p>
+                <p>Unlike the mean, the median is not affected by outliers.</p>
+                {% endif %}
+            </div>
+        </section>
+
+        <!-- ═══════════════════════════════════════ -->
+        <!-- PYTHON SOURCE CODE                      -->
+        <!-- ═══════════════════════════════════════ -->
+        <section class="bg-dark-800 rounded-2xl border border-gray-700 p-8">
+            <h3 class="text-xl font-bold text-white mb-4">Python Source Code</h3>
+            <p class="text-gray-400 text-sm mb-4">You can import this function directly from <code class="bg-gray-900 px-2 py-1 rounded">equations.py</code></p>
+            <div class="bg-gray-900 rounded-xl p-6 overflow-x-auto">
+                <pre class="text-green-400 font-mono text-sm"><code id="source-code">import equations
+
+# Call the function:
+result = equations.{{ slug.replace('-', '_') }}({% for p in eq.params %}{% if p.type == 'csv' %}[1, 2, 3, 4, 5]{% elif p.type == 'integer' %}5{% else %}10.0{% endif %}{% if not loop.last %}, {% endif %}{% endfor %})
+print(result)</code></pre>
+            </div>
+        </section>
+    </div>
+
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- SCRIPT                                      -->
+    <!-- ═══════════════════════════════════════════ -->
+    <script>
+        function runEquation() {
+            const params = {};
+            document.querySelectorAll('input[data-name]').forEach(input => {
+                params[input.dataset.name] = input.value;
+            });
+
+            fetch('/calculate-equation', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ slug: '{{ slug }}', params })
+            })
+            .then(res => res.json())
+            .then(data => {
+                const box = document.getElementById('eq-result');
+                const content = document.getElementById('eq-result-content');
+                box.classList.remove('hidden');
+                if (data.error) {
+                    content.className = 'text-red-400 font-mono text-sm whitespace-pre-wrap';
+                    content.textContent = 'Error: ' + data.error;
+                } else {
+                    content.className = 'text-green-400 font-mono text-sm whitespace-pre-wrap';
+                    content.textContent = JSON.stringify(data, null, 2);
+                }
+            })
+            .catch(err => {
+                const box = document.getElementById('eq-result');
+                const content = document.getElementById('eq-result-content');
+                box.classList.remove('hidden');
+                content.className = 'text-red-400 font-mono text-sm';
+                content.textContent = 'Network error: ' + err;
+            });
+        }
+    </script>
+</body>
+</html>
